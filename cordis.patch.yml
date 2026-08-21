@@ -1,0 +1,22 @@
+# Bridge the verified Codebase Memory runtime into DSH as native MCP tools.
+# The runtime is pinned and installed globally because its npm package downloads a
+# platform-specific binary. The executable path is derived from Windows APPDATA.
+- insert:
+    - id: mcp-codebase-memory
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: codebase_memory
+        transport: stdio
+        command: !!js >-
+          process.env.APPDATA +
+          "/npm/node_modules/codebase-memory-mcp/bin/codebase-memory-mcp.exe"
+        cwd: !!js >-
+          process.env.TEMP + "/dsh-codebase-memory-session"
+        args: []
+        toolCallTimeoutMs: 600000
+        failOnStartupError: true
+        reconnect:
+          enabled: true
+          initialDelayMs: 500
+          maxDelayMs: 30000
+          maxAttempts: 10
