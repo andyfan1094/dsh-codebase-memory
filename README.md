@@ -48,8 +48,16 @@ Watcher records live in `~/.dsh/dsh-codebase-memory/watcher.json` and are writte
 
 ## Install
 
+Download the newest `dsh-codebase-memory-*.tgz` from [Releases](https://github.com/andyfan1094/dsh-codebase-memory/releases) and add it to the profile:
+
 ```powershell
-dsh plugin --profile web add @deepseek-ai/dsh-mcp-client@0.1.0-rc.7 link:D:/项目/dsh-codebase-memory
+dsh plugin --profile web add D:\downloads\dsh-codebase-memory-0.2.0.tgz
+```
+
+For local development, install from a checkout instead:
+
+```powershell
+dsh plugin --profile web add link:D:/项目/dsh-codebase-memory
 ```
 
 Restart the DSH Web host after installation.
