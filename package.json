@@ -1,8 +1,14 @@
 {
   "name": "dsh-codebase-memory",
-  "version": "0.1.0",
-  "description": "DSH bundle that bridges the Codebase Memory MCP code knowledge graph into DSH via the official @deepseek-ai/dsh-mcp-client. Pins the Windows AMD64 release of codebase-memory-mcp@0.10.8 by SHA-256 and exposes all mcp__codebase_memory__* tools natively. Includes a Graph UI on http://127.0.0.1:9749. Standalone Cordis bundle patch — no dsh source changes.",
+  "version": "0.2.0",
+  "description": "DSH bundle that bridges the Codebase Memory MCP code knowledge graph into DSH and can keep indexed repositories fresh with an optional debounced filesystem watcher.",
   "license": "MIT",
+  "type": "module",
+  "main": "src/index.mjs",
+  "exports": {
+    ".": "./src/index.mjs",
+    "./package.json": "./package.json"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"
@@ -14,12 +20,26 @@
     "codebase-memory",
     "mcp",
     "knowledge-graph",
-    "bundle-plugin"
+    "bundle-plugin",
+    "watcher",
+    "chokidar"
   ],
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check src/index.mjs && node --check src/state.mjs && node --check src/cli-bridge.mjs && node --check src/watcher.mjs && node --check src/routes.mjs",
+    "pack:check": "npm pack --dry-run --json"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "chokidar": "^3.6.0"
+  },
   "peerDependencies": {
     "@deepseek-ai/dsh-mcp-client": "^0.1.0-rc.7"
   },
   "files": [
+    "src",
     "cordis.patch.yml",
     "README.md",
     "package.json"

@@ -1,6 +1,5 @@
-# Bridge the verified Codebase Memory runtime into DSH as native MCP tools.
-# The runtime is pinned and installed globally because its npm package downloads a
-# platform-specific binary. The executable path is derived from Windows APPDATA.
+# Bridge the verified Codebase Memory runtime into DSH as native MCP tools
+# and register the file-system watcher that keeps the graph fresh.
 - insert:
     - id: mcp-codebase-memory
       name: '@deepseek-ai/dsh-mcp-client'
@@ -20,3 +19,42 @@
           initialDelayMs: 500
           maxDelayMs: 30000
           maxAttempts: 10
+
+    # Watcher: same package, different bundle id so its setup() runs as a
+    # standalone plugin without competing with the MCP-client bridge above.
+    - id: dsh-codebase-memory-watcher
+      name: dsh-codebase-memory
+      config:
+        enabled: true
+        autoAttach: true
+        defaultDebounceMs: 5000
+        defaultMode: moderate
+        usePolling: false
+        ignored:
+          - "**/node_modules/**"
+          - "**/.git/**"
+          - "**/dist/**"
+          - "**/build/**"
+          - "**/.next/**"
+          - "**/.turbo/**"
+          - "**/.codebase-memory/**"
+          - "**/.pnpm-store/**"
+          - "**/target/**"
+          - "**/__pycache__/**"
+          - "**/.venv/**"
+        watchedExtensions:
+          - .ts
+          - .tsx
+          - .js
+          - .jsx
+          - .mjs
+          - .cjs
+          - .py
+          - .go
+          - .rs
+          - .java
+          - .cs
+          - .rb
+          - .php
+          - .vue
+          - .svelte
