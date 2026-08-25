@@ -1,5 +1,7 @@
 # DSH Codebase Memory
 
+[中文文档](README.zh.md) | English
+
 Local DSH bundle that connects [Codebase Memory MCP](https://github.com/DeusData/codebase-memory-mcp) through the official `@deepseek-ai/dsh-mcp-client` bridge, and ships a file-system watcher that keeps the knowledge graph fresh.
 
 ## Runtime
@@ -45,6 +47,11 @@ The watcher never owns the MCP client connection — it shells out to `codebase-
 ### State persistence
 
 Watcher records live in `~/.dsh/dsh-codebase-memory/watcher.json` and are written with owner-only permissions where the platform supports them. Plugin disposal closes live handles without changing the persisted intent; the next DSH Web start re-creates every watcher that the user did not explicitly stop.
+
+## Screenshots
+
+![dsh-codebase-memory screenshot](docs/screenshots/codebase-memory-cli.png)
+
 
 ## Install
 
