@@ -1,6 +1,6 @@
 {
   "name": "dsh-codebase-memory",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "DSH bundle that bridges the Codebase Memory MCP code knowledge graph into DSH and can keep indexed repositories fresh with an optional debounced filesystem watcher.",
   "license": "MIT",
   "type": "module",

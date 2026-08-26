@@ -6,14 +6,22 @@
       config:
         serverName: codebase_memory
         transport: stdio
+# Cross-platform resolution (review fix): Windows cannot spawn "npx" directly without
+# a shell, so invoke npm's npx-cli.js with the Node executable itself; on other
+# platforms resolve npx from PATH. npx -y fetches codebase-memory-mcp on first use,
+# so no pre-installed global CLI is required anywhere.
         command: !!js >-
-          process.env.APPDATA +
-          "/npm/node_modules/codebase-memory-mcp/bin/codebase-memory-mcp.exe"
+          process.platform === "win32" ? process.execPath : "npx"
+        args: !!js >-
+          process.platform === "win32"
+            ? [process.execPath.replace(/\\node\.exe$/, "") + "\\node_modules\\npm\\bin\\npx-cli.js", "-y", "codebase-memory-mcp@0.10.8"]
+            : ["-y", "codebase-memory-mcp@0.10.8"]
         cwd: !!js >-
-          process.env.TEMP + "/dsh-codebase-memory-session"
-        args: []
+          (process.env.TEMP || process.env.TMPDIR || "/tmp") + "/dsh-codebase-memory-session"
         toolCallTimeoutMs: 600000
-        failOnStartupError: true
+# Keep the Host booting even when npx/npm is missing; the watcher still works and the
+# startup error is logged instead of killing plugin load.
+        failOnStartupError: false
         reconnect:
           enabled: true
           initialDelayMs: 500

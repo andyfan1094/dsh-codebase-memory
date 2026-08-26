@@ -7,6 +7,28 @@ import { dirname } from 'node:path'
 
 const STATE_VERSION = 1
 
+function normalizeRepoPath(value) {
+  return String(value || '').trim().replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase()
+}
+
+function dedupeWatches(watches) {
+  const deduped = {}
+  const idsByPath = new Map()
+  for (const [id, record] of Object.entries(watches)) {
+    const path = normalizeRepoPath(record && record.repoPath)
+    if (!path) {
+      deduped[id] = record
+      continue
+    }
+    const previousId = idsByPath.get(path)
+    if (previousId && Number(deduped[previousId].createdAt || 0) > Number(record.createdAt || 0)) continue
+    if (previousId) delete deduped[previousId]
+    deduped[id] = { ...record, id }
+    idsByPath.set(path, id)
+  }
+  return deduped
+}
+
 export function createStateStore(filePath) {
   let state = {
     version: STATE_VERSION,
@@ -22,7 +44,11 @@ export function createStateStore(filePath) {
       const raw = await readFile(filePath, 'utf8')
       const parsed = JSON.parse(raw)
       if (parsed && parsed.version === STATE_VERSION && typeof parsed.watches === 'object') {
-        state = parsed
+        const watches = dedupeWatches(parsed.watches)
+        state = { ...parsed, watches }
+        loaded = true
+        if (Object.keys(watches).length !== Object.keys(parsed.watches).length) await persist()
+        return
       }
     } catch (err) {
       // Missing or corrupt: start clean; the watcher will rebuild on demand.
@@ -59,6 +85,11 @@ export function createStateStore(filePath) {
     },
     async upsert(record) {
       await load()
+      if (!record.id) {
+        const path = normalizeRepoPath(record.repoPath)
+        const existing = Object.values(state.watches).find((watch) => normalizeRepoPath(watch.repoPath) === path)
+        if (existing) record.id = existing.id
+      }
       if (!record.id) record.id = 'w' + String(state.nextId++)
       state.watches[record.id] = { ...record }
       await persist()

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, writeFile } from 'node:fs/promises'
+import { mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { createStateStore } from '../src/state.mjs'
@@ -27,6 +27,26 @@ async function fixture(indexRepository = async () => ({ status: 'indexed', nodes
   })
   return { dir, state, service }
 }
+
+test('state store removes duplicate repository paths and reuses the surviving id', async () => {
+  const dir = await mkdtemp(join(tmpdir(), 'dsh-cbm-state-'))
+  const statePath = join(dir, 'watcher.json')
+  await writeFile(statePath, JSON.stringify({
+    version: 1,
+    watches: {
+      w1: { id: 'w1', repoPath: 'C:/Repo', createdAt: 1 },
+      w2: { id: 'w2', repoPath: 'c:\\repo\\', createdAt: 2 },
+      w3: { id: 'w3', repoPath: 'D:/Other', createdAt: 3 },
+    },
+    nextId: 4,
+  }))
+
+  const state = createStateStore(statePath)
+  assert.deepEqual((await state.all()).map((watch) => watch.id), ['w2', 'w3'])
+  assert.equal(await state.upsert({ repoPath: 'C:/REPO/' }), 'w2')
+  assert.equal((await state.all()).length, 2)
+  assert.deepEqual(Object.keys(JSON.parse(await readFile(statePath, 'utf8')).watches), ['w2', 'w3'])
+})
 
 test('disposeAll preserves persisted watcher intent for Host restart recovery', async () => {
   const { dir, state, service } = await fixture()
